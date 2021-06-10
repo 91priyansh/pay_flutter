@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pay/pay.dart';
+import 'package:pay_platform_interface/core/payment_configuration.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -12,6 +15,43 @@ class _HomeScreenState extends State<HomeScreen> {
   List<PaymentItem> _paymentItems = [];
   double amount = 0.0;
 
+  String convertGPaymentConfigToString() {
+    return jsonEncode({
+      "provider": "google_pay",
+      "data": {
+        "environment": "TEST",
+        "apiVersion": 2,
+        "apiVersionMinor": 0,
+        "allowedPaymentMethods": [
+          {
+            "type": "CARD",
+            "tokenizationSpecification": {
+              "type": "PAYMENT_GATEWAY",
+              "parameters": {
+                "gateway": "example",
+                "gatewayMerchantId": "gatewayMerchantId"
+              }
+            },
+            "parameters": {
+              "allowedCardNetworks": ["VISA", "MASTERCARD"],
+              "allowedAuthMethods": ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+              "billingAddressRequired": true,
+              "billingAddressParameters": {
+                "format": "FULL",
+                "phoneNumberRequired": true
+              }
+            }
+          }
+        ],
+        "merchantInfo": {
+          "merchantId": "01234567890123456789",
+          "merchantName": "Example Merchant Name"
+        },
+        "transactionInfo": {"countryCode": "US", "currencyCode": "USD"}
+      }
+    });
+  }
+
   @override
   void initState() {
     _paymentItems.add(PaymentItem(
@@ -22,13 +62,82 @@ class _HomeScreenState extends State<HomeScreen> {
     _paymentItems.forEach((element) {
       amount = amount + double.parse(element.amount);
     });
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+        appBar: AppBar(
+          title: Text("$amount"),
+        ),
+        body: Center(
+          child: MaterialButton(
+            child: Text("Pay kar"),
+            onPressed: () async {
+              Pay pay = Pay([
+                PaymentConfiguration.fromJsonString(jsonEncode({
+                  "provider": "google_pay",
+                  "data": {
+                    "environment": "TEST",
+                    "apiVersion": 2,
+                    "apiVersionMinor": 0,
+                    "allowedPaymentMethods": [
+                      {
+                        "type": "CARD",
+                        "tokenizationSpecification": {
+                          "type": "PAYMENT_GATEWAY",
+                          "parameters": {
+                            "gateway": "example",
+                            "gatewayMerchantId": "gatewayMerchantId"
+                          }
+                        },
+                        "parameters": {
+                          "allowedCardNetworks": ["VISA", "MASTERCARD"],
+                          "allowedAuthMethods": ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                          "billingAddressRequired": true,
+                          "billingAddressParameters": {
+                            "format": "FULL",
+                            "phoneNumberRequired": true
+                          }
+                        }
+                      }
+                    ],
+                    "merchantInfo": {
+                      "merchantId": "01234567890123456789",
+                      "merchantName": "Example Merchant Name"
+                    },
+                    "transactionInfo": {
+                      "countryCode": "US",
+                      "currencyCode": "USD"
+                    }
+                  }
+                }))
+              ]);
+              try {
+                final userCanPay = await pay.userCanPay(PayProvider.google_pay);
+                if (userCanPay) {
+                  final paymentResult = await pay.showPaymentSelector(
+                      provider: PayProvider.google_pay,
+                      paymentItems: _paymentItems);
+                  showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                            content: Text(paymentResult.toString()),
+                          ));
+                }
+              } catch (e) {
+                //
+              }
+            },
+          ),
+        ));
+  }
+}
+
+/*
+Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
@@ -100,6 +209,5 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-}
+
+ */
