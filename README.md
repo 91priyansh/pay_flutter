@@ -1,6 +1,8 @@
+
+
 # gpay_example
 
-A new Flutter project.
+A new Flutter project.User latest version of pay package
 
 ## Getting Started
 
