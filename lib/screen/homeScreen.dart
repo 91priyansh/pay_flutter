@@ -70,9 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
     List<PaymentItem> paymentItems = [PaymentItem(amount: "500", status: PaymentItemStatus.final_price, label: "Product name")];
     Pay pay = Pay([PaymentConfiguration.fromJsonString(convertPaymentConfigToString(paymentConfig))]);
     try {
-      final userCanPay = await pay.userCanPay(PayProvider.google_pay);
+      final userCanPay = await pay.userCanPay(payProvider);
       if (userCanPay) {
-        final paymentResult = await pay.showPaymentSelector(provider: PayProvider.google_pay, paymentItems: paymentItems);
+        final paymentResult = await pay.showPaymentSelector(provider: payProvider, paymentItems: paymentItems);
+        //payment success result
         print(paymentResult);
       } else {
         //show can not make payment message
@@ -90,91 +91,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: Center(
           child: MaterialButton(
-            child: Text("Pay kar"),
+            child: Text("Make Payment"),
             onPressed: () async {
+              //pass customPaymentConfing here which is fetched from server
               //for gogole pay
               makePayment(PayProvider.google_pay, gpayPaymentCofig);
+
+              //for apay
+              //makePayment(PayProvider.apple_pay, apayConfig);
             },
           ),
         ));
   }
 }
-
-/*
- */
-
-/*
-Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: Text("Amount : $amount"),
-          ),
-          ApplePayButton(
-            paymentConfigurationAsset: 'apay.json',
-            paymentItems: _paymentItems,
-            style: ApplePayButtonStyle.black,
-            type: ApplePayButtonType.buy,
-            height: 50,
-            width: 150,
-            margin: const EdgeInsets.only(top: 15.0),
-            onError: (error) {
-              showDialog(
-                  context: context,
-                  builder: (_) {
-                    return AlertDialog(
-                      title: Text("Failure"),
-                    );
-                  });
-            },
-            onPaymentResult: (result) {
-              print(result);
-              showDialog(
-                  context: context,
-                  builder: (_) {
-                    return AlertDialog(
-                      title: Text("Success"),
-                    );
-                  });
-            },
-            loadingIndicator: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          Center(
-            child: GooglePayButton(
-              width: 150,
-              height: 50,
-              paymentConfigurationAsset: 'gpay.json',
-              paymentItems: _paymentItems,
-              style: GooglePayButtonStyle.white,
-              type: GooglePayButtonType.pay,
-              margin: const EdgeInsets.only(top: 15.0),
-              onError: (error) {
-                showDialog(
-                    context: context,
-                    builder: (_) {
-                      return AlertDialog(
-                        title: Text("Failure"),
-                      );
-                    });
-              },
-              onPaymentResult: (result) {
-                print(result);
-                showDialog(
-                    context: context,
-                    builder: (_) {
-                      return AlertDialog(
-                        title: Text("Success"),
-                      );
-                    });
-              },
-              loadingIndicator: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ),
-        ],
-      ),
-
- */
